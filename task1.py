@@ -4,8 +4,8 @@ import nltk
 import re
 from collections import Counter
 
-# nltk.download('punkt')
-# nltk.download('stopwords')
+nltk.download('punkt')
+nltk.download('stopwords')
 
 def preprocessing(text):
     # handle the separators
@@ -32,28 +32,25 @@ for term, count in sorted_number_of_terms:
 
 N = len(sorted_number_of_terms)
 frequency_ranking = range(1, N + 1)
-
-plt.figure(figsize=(10, 6))
-plt.plot(frequency_ranking, normalized_frequencies, linestyle='-', label='data')
-plt.title('Probability of Occurrence against Frequency Ranking')
-plt.xlabel('Frequency ranking(log)')
-plt.ylabel('Term probability of occurrence(log)')
-plt.xlim(left=1)
-plt.ylim(bottom=(10 ** -7))
-plt.legend()
-
 s = 1
 HN = np.sum([1 / (n ** s) for n in range(1, N + 1)])
 Zipf_law_distribution = [(1 / (k ** s)) / HN for k in range(1, N + 1)]
 
 plt.figure(figsize=(10, 6))
-plt.loglog(frequency_ranking, normalized_frequencies, linestyle='-', label='empirical distribution')
-plt.loglog(frequency_ranking, Zipf_law_distribution, linestyle='--', color='red', label='actual Zipf’s law distribution')
+plt.plot(frequency_ranking, normalized_frequencies, linestyle='-', label='data')
+plt.plot(frequency_ranking, Zipf_law_distribution, linestyle='--', color='red', label='theory (Zipf\'s law)')
+plt.title('Probability of Occurrence against Frequency Ranking')
+plt.xlabel('Frequency ranking')
+plt.ylabel('Term probability of occurrence')
+plt.legend()
+
+plt.figure(figsize=(10, 6))
+plt.loglog(frequency_ranking, normalized_frequencies, linestyle='-', label='data')
+plt.loglog(frequency_ranking, Zipf_law_distribution, linestyle='--', color='red', label='theory (Zipf\'s law)')
 plt.title(' Empirical distribution compare to the actual Zipf’s law distribution')
 plt.xlabel('Frequency rankin(log)')
 plt.ylabel('Term probability of occurrence(log)')
 plt.xlim(left=1)
-plt.ylim(bottom=(10 ** -7))
 plt.legend()
 
 plt.show()
