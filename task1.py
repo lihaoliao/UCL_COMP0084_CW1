@@ -32,22 +32,30 @@ with open('passage-collection.txt', 'r', encoding='utf-8') as file:
     text = file.read()
    
 unremove_number_of_terms, remove_number_of_terms = preprocessing(text, True)
-print(len(unremove_number_of_terms))
-print(len(remove_number_of_terms)) 
 
 unremove_total_count_of_terms = sum(unremove_number_of_terms.values())
+remove_total_count_of_terms  = sum(remove_number_of_terms.values())
 unremove_sorted_number_of_terms = unremove_number_of_terms.most_common()
+remove_sorted_number_of_terms = remove_number_of_terms.most_common()
 
 unremove_normalized_frequencies = []
 for term, count in unremove_sorted_number_of_terms:
     normalized_frequency = count / unremove_total_count_of_terms
     unremove_normalized_frequencies.append(normalized_frequency)
+remove_normalized_frequencies = []
+for term, count in remove_sorted_number_of_terms:
+    normalized_frequency = count / remove_total_count_of_terms
+    remove_normalized_frequencies.append(normalized_frequency)
 
-N = len(unremove_sorted_number_of_terms)
-unremove_frequency_ranking = range(1, N + 1)
+unremove_N = len(unremove_sorted_number_of_terms)
+remove_N = len(remove_sorted_number_of_terms)
+unremove_frequency_ranking = range(1, unremove_N + 1)
+remove_frequency_ranking = range(1, remove_N + 1)
 s = 1
-HN = np.sum([1 / (n ** s) for n in range(1, N + 1)])
-unremove_Zipf_law_distribution = [(1 / (k ** s)) / HN for k in range(1, N + 1)]
+unremove_HN = np.sum([1 / (n ** s) for n in range(1, unremove_N + 1)])
+remove_HN = np.sum([1 / (n ** s) for n in range(1, remove_N + 1)])
+unremove_Zipf_law_distribution = [(1 / (k ** s)) / unremove_HN for k in range(1, unremove_N + 1)]
+remove_Zipf_law_distribution = [(1 / (k ** s)) / remove_HN for k in range(1, remove_N + 1)]
 
 plt.figure(figsize=(10, 6))
 plt.plot(unremove_frequency_ranking, unremove_normalized_frequencies, linestyle='-', label='data')
@@ -67,6 +75,17 @@ plt.ylabel('Term probability of occurrence(log)')
 plt.xlim(left=1)
 plt.legend()
 # plt.savefig('figure2.pdf')
+
+plt.figure(figsize=(10, 6))
+plt.loglog(remove_frequency_ranking, remove_normalized_frequencies, linestyle='-', label='data')
+plt.loglog(remove_frequency_ranking, remove_Zipf_law_distribution, linestyle='--', color='red', label='theory (Zipf\'s law)')
+plt.title(' Empirical distribution compare to the actual Zipf’s law distribution without stop words')
+plt.xlabel('Frequency rankin(log)')
+plt.ylabel('Term probability of occurrence(log)')
+plt.xlim(left=1)
+plt.legend()
+# plt.savefig('figure3.pdf')
+
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"程序运行时间：{elapsed_time}秒")
