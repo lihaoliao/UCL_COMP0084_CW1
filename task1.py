@@ -4,31 +4,36 @@ import nltk
 import re
 from collections import Counter
 from nltk.corpus import stopwords
-from scipy.special import rel_entr
 import time
 
-# nltk.download('punkt')
-# nltk.download('stopwords')
+nltk.download('stopwords')
+preprocessing_re = re.compile(r'[^a-zA-Z\s]')
 
 def preprocessing(text, remove):
     # handle the separators
     text = text.replace("/", " ")
     # group tokens with minor differences
-    text = re.sub(r'[^a-zA-Z\s]', '', text)
+    text = re.sub(preprocessing_re, '', text)
     # Tokenisation
-    tokens = nltk.word_tokenize(text)
-    unremove_text = Counter(tokens)
+    tokens = text.split()
+    unremove_text = Counter(text.split())
+    remove_text = Counter()
     if remove:
         stop_words = set(stopwords.words('english'))
         capitalized_stop_words = {word.capitalize() for word in stop_words}
         stop_words.update(capitalized_stop_words)
-        remove_tokens = [word for word in tokens if word not in stop_words]
-        remove_text = Counter(remove_tokens)
-    
+        remove_text = Counter(word for word in tokens if word not in stop_words)
+        with open('remove_stop_word_vocabulary.txt', 'w', encoding='utf-8') as file:
+            file.write('\n'.join(remove_text.keys()))
     return unremove_text, remove_text
 
+# def calculate_proportion_in_range(normalized_frequencies, N, a, b):
+#     count = sum(1 for freq in normalized_frequencies if a <= freq <= b)
+#     proportion = count / N
+#     return proportion
 
-# start_time = time.time()
+
+start_time = time.time()
 with open('passage-collection.txt', 'r', encoding='utf-8') as file:
     text = file.read()
    
@@ -61,6 +66,14 @@ remove_HN = np.sum([1 / (n ** s) for n in range(1, remove_N + 1)])
 unremove_Zipf_law_distribution = [(1 / (k ** s)) / unremove_HN for k in range(1, unremove_N + 1)]
 remove_Zipf_law_distribution = [(1 / (k ** s)) / remove_HN for k in range(1, remove_N + 1)]
 
+# a = 10**-5
+# b = 10**-2.5
+# proportion = calculate_proportion_in_range(remove_normalized_frequencies, remove_N, a, b)
+# print(proportion * 100)
+# proportion = calculate_proportion_in_range(remove_Zipf_law_distribution, remove_N, a, b)
+# print(proportion * 100)
+
+
 plt.figure(figsize=(10, 6))
 plt.plot(unremove_frequency_ranking, unremove_normalized_frequencies, linestyle='-', label='data')
 plt.plot(unremove_frequency_ranking, unremove_Zipf_law_distribution, linestyle='--', color='red', label='theory (Zipf\'s law)')
@@ -68,7 +81,7 @@ plt.title('Probability of Occurrence against Frequency Ranking')
 plt.xlabel('Frequency ranking')
 plt.ylabel('Term probability of occurrence')
 plt.legend()
-plt.savefig('figure1.pdf')
+# plt.savefig('figure1.pdf')
 
 plt.figure(figsize=(10, 6))
 plt.loglog(unremove_frequency_ranking, unremove_normalized_frequencies, linestyle='-', label='data')
@@ -112,8 +125,8 @@ plt.legend()
 # plt.ylabel('Kullback Leibler Divergence')
 # plt.savefig('Kullback_Leibler_Divergence.pdf')
 
-# end_time = time.time()
-# elapsed_time = end_time - start_time
-# print(f"程序运行时间：{elapsed_time}秒")
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"程序运行时间：{elapsed_time}秒")
 plt.show()
 
