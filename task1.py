@@ -25,6 +25,7 @@ def preprocessing(text, remove):
         remove_text = Counter(word for word in tokens if word not in stop_words)
         with open('remove_stop_word_vocabulary.txt', 'w', encoding='utf-8') as file:
             file.write('\n'.join(remove_text.keys()))
+
     return unremove_text, remove_text
 
 # def calculate_proportion_in_range(normalized_frequencies, N, a, b):
@@ -127,6 +128,6 @@ plt.legend()
 
 end_time = time.time()
 elapsed_time = end_time - start_time
-print(f"程序运行时间：{elapsed_time}秒")
+print(f"task1程序运行时间：{elapsed_time}秒")
 plt.show()
 

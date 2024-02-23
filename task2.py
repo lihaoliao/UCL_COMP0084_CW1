@@ -55,9 +55,7 @@ with open('each_passage_terms_sum.json', 'w', encoding='utf-8') as file:
 
 with open('passages_id_and_terms_info.json', 'w', encoding='utf-8') as file:
     json.dump(passages_id_and_terms_info, file, ensure_ascii=False, indent=3)  
-   
-                              
-         
+       
 end_time = time.time()
 elapsed_time = end_time - start_time
-print(f"程序运行时间：{elapsed_time}秒")
+print(f"task2程序运行时间：{elapsed_time}秒")

@@ -9,11 +9,11 @@ import csv
 import numpy as np
 
 start_time = time.time()
-# 这个是tf的分子,就是每个term在某个passage出现的次数
+# 这个是tf的分子,就是每个term在某个passage出现的次数 value长度就是每个单词出现的总次数
 with open('inverted_index.json', 'r', encoding='utf-8') as file:
     inverted_index = json.load(file)
 
-# 这个变量长度是idf分子 然后它每个passage的value是tf的分母(也就是passage一共有几个词)
+# 这个变量长度（总共的document数量）是idf分子 然后它每个passage的value是tf的分母(也就是passage一共有几个词)
 with open('each_passage_terms_sum.json', 'r', encoding='utf-8') as file:
     each_passage_terms_sum = json.load(file)
 
@@ -149,8 +149,52 @@ def tfidf_top100(cosine_similarity_score,queries_id_and_terms_info):
 tfidf_top100(cosine_similarity_score,queries_id_and_terms_info)
 
 # ===================================================BM25======================================================================
+k1, k2, b = 1.2, 100, 0.75
+dl = each_passage_terms_sum
+avdl = 0
+for value in dl.values():
+    avdl += value
+avdl = avdl / len(dl)
 
+def calculate_BM25(n, f, qf, R, r, N, dl, avdl, k1, k2, b, pid):
+    K = k1 * ((1 - b) + (b * (dl[pid]/avdl)))
+    BM25_part1 = math.log( ((r+0.5) / (R-r+0.5)) / ((n-r+0.5) / (N-n-R+r+0.5)) )
+    BM25_part2 = ((k1+1) * f) / (K + f)
+    BM25_part3 = ((k2 + 1) * qf) / (k2 + qf)
+    return BM25_part1 * BM25_part2 * BM25_part3
+
+#  n = len(inverted_index[term])
+# f = inverted_index[term][pid] 
+def calculate_BM25_score(qid_and_pid, queries_id_and_terms_info, inverted_index, inverted_index_query, dl, avdl, k1, k2, b):
+    BM25_score = defaultdict(dict)
+    # 查询里面的每一个词都要算一次bm25然后相加
+    for qid, pids in qid_and_pid.items():
+        for pid in pids:
+            BM25_cur_qid_score = 0
+            for term in queries_id_and_terms_info[qid]:
+                BM25_cur_qid_score += calculate_BM25(len(inverted_index[term]), inverted_index[term].get(pid, 0), inverted_index_query[term][qid], 0, 0, len(dl), dl, avdl, k1, k2, b, pid)
+            if pid not in BM25_score[qid]:
+                BM25_score[qid][pid] = BM25_cur_qid_score
+    return BM25_score
+
+BM25_score = calculate_BM25_score(qid_and_pid, queries_id_and_terms_info, inverted_index, inverted_index_query, dl, avdl, k1, k2, b)
+
+# select the top 100
+def BM25_top100(BM25_score, queries_id_and_terms_info):
+    top_100_pids_for_qid = defaultdict(list)
+    for qid, pid_scores in BM25_score.items():
+        sorted_pids = sorted(pid_scores.items(), key=lambda x: x[1], reverse=True)
+        top_100_pids = sorted_pids[:100]
+        top_100_pids_for_qid[qid] = top_100_pids 
+    with open('bm25.csv', 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        for qid, _ in queries_id_and_terms_info.items():
+            top100_passage = top_100_pids_for_qid[qid]
+            for pid,score in top100_passage:
+                writer.writerow([qid, pid, score])
+
+BM25_top100(BM25_score, queries_id_and_terms_info)
 
 end_time = time.time()
 elapsed_time = end_time - start_time
-print(f"程序运行时间：{elapsed_time}秒")
+print(f"task3程序运行时间：{elapsed_time}秒")
