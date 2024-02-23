@@ -79,9 +79,6 @@ with open('test-queries.tsv', 'r', encoding='utf-8') as file:
         else:
             queries_id_and_terms_info[qid] = []    
 
-with open('queries_id_and_terms_info.json', 'w', encoding='utf-8') as file:
-    json.dump(queries_id_and_terms_info, file, ensure_ascii=False, indent=3)     
-
 inverted_index_query = defaultdict(dict)   
 each_query_terms_sum = {}     
 total_query = len(queries_id_and_terms_info)
@@ -91,9 +88,7 @@ for qid, terms in queries_id_and_terms_info.items():
     for term, frequency in term_frequency.items():
         if qid not in inverted_index_query[term]:
             inverted_index_query[term][qid] = frequency
-
-with open('inverted_index_query.json', 'w', encoding='utf-8') as file:
-    json.dump(inverted_index_query, file, ensure_ascii=False, indent=3)    
+ 
 
 # calculate the tf for each term in each query
 term_tf_in_query = calculate_passage_tf(inverted_index_query,each_query_terms_sum)
@@ -136,8 +131,6 @@ def calculate_cosine_similarity(tf_idf_for_passage,tf_idf_for_query):
 
 
 cosine_similarity_score = calculate_cosine_similarity(tf_idf_for_passage,tf_idf_for_query)
-with open('cosine_similarity.json', 'w', encoding='utf-8') as file:
-    json.dump(cosine_similarity_score, file, ensure_ascii=False, indent=3)
 
 # select the top 100
 def tfidf_top100(cosine_similarity_score,queries_id_and_terms_info):
@@ -155,7 +148,8 @@ def tfidf_top100(cosine_similarity_score,queries_id_and_terms_info):
 
 tfidf_top100(cosine_similarity_score,queries_id_and_terms_info)
 
-# =========================================================================================================================
+# ===================================================BM25======================================================================
+
 
 end_time = time.time()
 elapsed_time = end_time - start_time
