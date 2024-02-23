@@ -2,8 +2,10 @@ import os
 import re
 import time
 import csv
+import json
 from collections import Counter,defaultdict
 
+preprocessing_re = re.compile(r'[^a-zA-Z\s]')
 def read_remove_stop_word_vocabulary_from_task1(filename='remove_stop_word_vocabulary.txt'):
   
     with open(filename, 'r', encoding='utf-8') as file:
@@ -16,7 +18,7 @@ def read_remove_stop_word_vocabulary_from_task1(filename='remove_stop_word_vocab
 
 def preprocessing_passage(text):
     text = text.replace("/", " ")
-    text = re.sub(r'[^a-zA-Z\s]', '', text)
+    text = re.sub(preprocessing_re, '', text)
     return text
 
 start_time = time.time()
@@ -38,16 +40,22 @@ with open('candidate-passages-top1000.tsv', 'r', encoding='utf-8') as file:
                 passages_id_and_terms_info[pid] = passage_contain_token
               
 inverted_index = defaultdict(dict)
-passage_terms_sum = {}
+each_passage_terms_sum = {}
 total_passage = len(passages_id_and_terms_info)
 for pid, terms in passages_id_and_terms_info.items():
     term_frequency = Counter(terms)
-    passage_terms_sum[pid] = sum(term_frequency.values())
+    each_passage_terms_sum[pid] = sum(term_frequency.values())
     for term, frequency in term_frequency.items():
         if pid not in inverted_index[term]:
             inverted_index[term][pid] = frequency
-            
-# doc_freqs = {term: len(doc_ids) for term, doc_ids in inverted_index.items()}                   
+
+with open('inverted_index.json', 'w', encoding='utf-8') as file:
+    json.dump(inverted_index, file, ensure_ascii=False, indent=3)
+
+with open('each_passage_terms_sum.json', 'w', encoding='utf-8') as file:
+    json.dump(each_passage_terms_sum, file, ensure_ascii=False, indent=3)   
+   
+                              
          
 end_time = time.time()
 elapsed_time = end_time - start_time
