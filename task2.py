@@ -1,4 +1,3 @@
-import os
 import re
 import time
 import csv
@@ -10,9 +9,6 @@ def read_remove_stop_word_vocabulary_from_task1(filename='remove_stop_word_vocab
   
     with open(filename, 'r', encoding='utf-8') as file:
         words = [line.strip() for line in file.readlines()]
-
-    # if os.path.exists(filename):
-    #     os.remove(filename)
     
     return words
 
@@ -38,6 +34,8 @@ with open('candidate-passages-top1000.tsv', 'r', encoding='utf-8') as file:
             passage_contain_token = [token for token in tokens if token in vocabulary_from_task1]
             if passage_contain_token:
                 passages_id_and_terms_info[pid] = passage_contain_token
+            else:
+                passages_id_and_terms_info[pid] = []     
               
 inverted_index = defaultdict(dict)
 each_passage_terms_sum = {}
@@ -54,6 +52,9 @@ with open('inverted_index.json', 'w', encoding='utf-8') as file:
 
 with open('each_passage_terms_sum.json', 'w', encoding='utf-8') as file:
     json.dump(each_passage_terms_sum, file, ensure_ascii=False, indent=3)   
+
+with open('passages_id_and_terms_info.json', 'w', encoding='utf-8') as file:
+    json.dump(passages_id_and_terms_info, file, ensure_ascii=False, indent=3)  
    
                               
          
