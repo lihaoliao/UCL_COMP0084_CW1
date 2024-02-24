@@ -84,15 +84,17 @@ with open('test-queries.tsv', 'r', encoding='utf-8') as file:
         query_contain_token = [token.upper() for token in tokens if token.upper() in vocabulary_from_task1]
         if query_contain_token:
             if qid in queries_id_and_terms_info:
-                queries_id_and_terms_info[qid].extend(query_contain_token)
-                queries_id_and_terms_info[qid] = list(set(queries_id_and_terms_info[qid]))
+                for token in query_contain_token:
+                    if token not in queries_id_and_terms_info[qid]:
+                        queries_id_and_terms_info[qid].append(token)
             else:
                  queries_id_and_terms_info[qid] = query_contain_token   
         query_contain_token = [token.capitalize() for token in tokens if token.capitalize() in vocabulary_from_task1]
         if query_contain_token:
             if qid in queries_id_and_terms_info:
-                queries_id_and_terms_info[qid].extend(query_contain_token)
-                queries_id_and_terms_info[qid] = list(set(queries_id_and_terms_info[qid]))
+                for token in query_contain_token:
+                    if token not in queries_id_and_terms_info[qid]:
+                        queries_id_and_terms_info[qid].append(token)
             else:
                  queries_id_and_terms_info[qid] = query_contain_token        
         if qid not in queries_id_and_terms_info:
