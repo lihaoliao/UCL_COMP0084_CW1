@@ -38,20 +38,15 @@ with open('candidate-passages-top1000.tsv', 'r', encoding='utf-8') as file:
                 passages_id_and_terms_info[pid] = []     
               
 inverted_index = defaultdict(dict)
-each_passage_terms_sum = {}
 total_passage = len(passages_id_and_terms_info)
 for pid, terms in passages_id_and_terms_info.items():
     term_frequency = Counter(terms)
-    each_passage_terms_sum[pid] = sum(term_frequency.values())
     for term, frequency in term_frequency.items():
         if pid not in inverted_index[term]:
             inverted_index[term][pid] = frequency
 
 with open('inverted_index.json', 'w', encoding='utf-8') as file:
     json.dump(inverted_index, file, ensure_ascii=False, indent=3)
-
-with open('each_passage_terms_sum.json', 'w', encoding='utf-8') as file:
-    json.dump(each_passage_terms_sum, file, ensure_ascii=False, indent=3)   
 
 with open('passages_id_and_terms_info.json', 'w', encoding='utf-8') as file:
     json.dump(passages_id_and_terms_info, file, ensure_ascii=False, indent=3)  

@@ -1,7 +1,5 @@
 from collections import Counter, defaultdict
-import os
 import json
-import math
 import re
 import time
 import csv
@@ -12,32 +10,28 @@ start_time = time.time()
 # 这个是tf的分子,就是每个term在某个passage出现的次数 value长度就是每个单词出现的总次数
 with open('inverted_index.json', 'r', encoding='utf-8') as file:
     inverted_index = json.load(file)
-
-# 这个变量长度（总共的document数量）是idf分子 然后它每个passage的value是tf的分母(也就是passage一共有几个词)
-with open('each_passage_terms_sum.json', 'r', encoding='utf-8') as file:
-    each_passage_terms_sum = json.load(file)
-
+    
 # 这个是passage和对应的terms
 with open('passages_id_and_terms_info.json', 'r', encoding='utf-8') as file:
     passages_id_and_terms_info = json.load(file)    
-
-total_passage = len(each_passage_terms_sum)
+# print(len(passages_id_and_terms_info))
+total_passage = len(passages_id_and_terms_info)
 
 # calculate IDF for each term - shared by query and passage
-idf = {term: math.log10(total_passage/len(inverted_index[term])) for term in inverted_index}
+idf = {term: np.log10(total_passage/len(inverted_index[term])) for term in inverted_index}
 
 # calculate the tf for each term in each passage(query)
-def calculate_passage_tf(inverted_index,each_passage_terms_sum):
+def calculate_tf(inverted_index,passages_or_queries_id_and_terms_info):
     term_tf_in_passage = defaultdict(dict)
     for term, passages in inverted_index.items():
         for pid, term_frequency in passages.items():
-            total_terms_in_passage = each_passage_terms_sum[pid]
-            tf = term_frequency / total_terms_in_passage
+            total_terms = len(passages_or_queries_id_and_terms_info[pid])
+            tf = term_frequency / total_terms
             if term not in term_tf_in_passage[term]:
                 term_tf_in_passage[term][pid] = tf
     return term_tf_in_passage                  
 
-term_tf_in_passage = calculate_passage_tf(inverted_index,each_passage_terms_sum)
+term_tf_in_passage = calculate_tf(inverted_index,passages_id_and_terms_info)
 
 # calculate the tf-idf for each term in each passage(query)
 def calculate_passage_or_query_tf_idf(term_tf_in_passage_or_query, idf, passages_or_queries_id_and_terms_info):
@@ -79,7 +73,15 @@ with open('test-queries.tsv', 'r', encoding='utf-8') as file:
         if query_contain_token:
             queries_id_and_terms_info[qid] = query_contain_token
         else:
-            queries_id_and_terms_info[qid] = []    
+            # If there is a corresponding word it is stored, if no corresponding word is found additional processing is performed
+            query_contain_token = [token.upper() for token in tokens if token.upper() in vocabulary_from_task1]
+            if query_contain_token:
+                queries_id_and_terms_info[qid] = query_contain_token
+            query_contain_token = [token.capitalize() for token in tokens if token.capitalize() in vocabulary_from_task1]
+            if query_contain_token:    
+                queries_id_and_terms_info[qid] = query_contain_token
+            if qid not in queries_id_and_terms_info:        
+                queries_id_and_terms_info[qid] = []    
 
 with open('queries_id_and_terms_info.json', 'w', encoding='utf-8') as file:
     json.dump(queries_id_and_terms_info, file, ensure_ascii=False, indent=3)                  
@@ -95,12 +97,10 @@ for qid, terms in queries_id_and_terms_info.items():
             inverted_index_query[term][qid] = frequency  
 
 # calculate the tf for each term in each query
-term_tf_in_query = calculate_passage_tf(inverted_index_query,each_query_terms_sum)
+term_tf_in_query = calculate_tf(inverted_index_query,queries_id_and_terms_info)
 
 # calculate the tf-idf for each term in each query
 tf_idf_for_query =  calculate_passage_or_query_tf_idf(term_tf_in_query, idf, queries_id_and_terms_info)
-with open('tf_idf_for_query.json', 'w', encoding='utf-8') as file:
-    json.dump(tf_idf_for_query, file, ensure_ascii=False, indent=3)  
 
 # read the tsv to get the connection between qid and pid
 qid_and_pid = defaultdict(set)
@@ -156,15 +156,15 @@ tfidf_top100(cosine_similarity_score,queries_id_and_terms_info)
 
 # ===================================================BM25======================================================================
 k1, k2, b = 1.2, 100, 0.75
-dl = each_passage_terms_sum
+dl = passages_id_and_terms_info
 avdl = 0
-for value in dl.values():
-    avdl += value
+for total_words_in_passage in dl.values():
+    avdl += len(total_words_in_passage)
 avdl = avdl / len(dl)
 
 def calculate_BM25(n, f, qf, R, r, N, dl, avdl, k1, k2, b, pid):
-    K = k1 * ((1 - b) + (b * (dl[pid]/avdl)))
-    BM25_part1 = math.log( ((r+0.5) / (R-r+0.5)) / ((n-r+0.5) / (N-n-R+r+0.5)) )
+    K = k1 * ((1 - b) + (b * (len(dl[pid])/avdl)))
+    BM25_part1 = np.log( ((r+0.5) / (R-r+0.5)) / ((n-r+0.5) / (N-n-R+r+0.5)) )
     BM25_part2 = ((k1+1) * f) / (K + f)
     BM25_part3 = ((k2 + 1) * qf) / (k2 + qf)
     return BM25_part1 * BM25_part2 * BM25_part3
