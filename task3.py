@@ -40,17 +40,20 @@ def calculate_passage_tf(inverted_index,each_passage_terms_sum):
 term_tf_in_passage = calculate_passage_tf(inverted_index,each_passage_terms_sum)
 
 # calculate the tf-idf for each term in each passage(query)
-def calculate_passage_tf_idf(term_tf_in_passage, idf, passages_id_and_terms_info):
-    tf_idf_for_passage = defaultdict(dict)
-    for pid, terms in passages_id_and_terms_info.items():
-        tf_idf_cur_passage = {}
+def calculate_passage_or_query_tf_idf(term_tf_in_passage_or_query, idf, passages_or_queries_id_and_terms_info):
+    tf_idf_for_passage_or_query = defaultdict(dict)
+    for pid, terms in passages_or_queries_id_and_terms_info.items():
+        tf_idf_cur_passage_or_query = {}
         for term in terms:
-            if term not in tf_idf_cur_passage:
-                tf_idf_cur_passage[term] = term_tf_in_passage[term][pid] * idf[term]
+            if term not in tf_idf_cur_passage_or_query:
+                tf_idf_cur_passage_or_query[term] = term_tf_in_passage_or_query[term][pid] * idf[term]
 
-        tf_idf_for_passage[pid] =  tf_idf_cur_passage      
-    return tf_idf_for_passage    
-tf_idf_for_passage =  calculate_passage_tf_idf(term_tf_in_passage, idf, passages_id_and_terms_info)
+        tf_idf_for_passage_or_query[pid] =  tf_idf_cur_passage_or_query      
+    return tf_idf_for_passage_or_query
+
+
+    
+tf_idf_for_passage =  calculate_passage_or_query_tf_idf(term_tf_in_passage, idf, passages_id_and_terms_info)
 
 preprocessing_re = re.compile(r'[^a-zA-Z\s]')
 def read_remove_stop_word_vocabulary_from_task1(filename='remove_stop_word_vocabulary.txt'):
@@ -76,8 +79,27 @@ with open('test-queries.tsv', 'r', encoding='utf-8') as file:
         query_contain_token = [token for token in tokens if token in vocabulary_from_task1]
         if query_contain_token:
             queries_id_and_terms_info[qid] = query_contain_token
-        else:
+        # Queries that use only lowercase can affect search results
+        # Simply deal with two cases, if more precision is needed more processing is required
+        query_contain_token = [token.upper() for token in tokens if token.upper() in vocabulary_from_task1]
+        if query_contain_token:
+            if qid in queries_id_and_terms_info:
+                queries_id_and_terms_info[qid].extend(query_contain_token)
+                queries_id_and_terms_info[qid] = list(set(queries_id_and_terms_info[qid]))
+            else:
+                 queries_id_and_terms_info[qid] = query_contain_token   
+        query_contain_token = [token.capitalize() for token in tokens if token.capitalize() in vocabulary_from_task1]
+        if query_contain_token:
+            if qid in queries_id_and_terms_info:
+                queries_id_and_terms_info[qid].extend(query_contain_token)
+                queries_id_and_terms_info[qid] = list(set(queries_id_and_terms_info[qid]))
+            else:
+                 queries_id_and_terms_info[qid] = query_contain_token        
+        if qid not in queries_id_and_terms_info:
             queries_id_and_terms_info[qid] = []    
+
+with open('queries_id_and_terms_info.json', 'w', encoding='utf-8') as file:
+    json.dump(queries_id_and_terms_info, file, ensure_ascii=False, indent=3)                  
 
 inverted_index_query = defaultdict(dict)   
 each_query_terms_sum = {}     
@@ -94,7 +116,7 @@ for qid, terms in queries_id_and_terms_info.items():
 term_tf_in_query = calculate_passage_tf(inverted_index_query,each_query_terms_sum)
 
 # calculate the tf-idf for each term in each query
-tf_idf_for_query =  calculate_passage_tf_idf(term_tf_in_query, idf, queries_id_and_terms_info)
+tf_idf_for_query =  calculate_passage_or_query_tf_idf(term_tf_in_query, idf, queries_id_and_terms_info)
 
 # read the tsv to get the connection between qid and pid
 qid_and_pid = defaultdict(set)
