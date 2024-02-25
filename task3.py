@@ -7,20 +7,19 @@ import csv
 import numpy as np
 
 start_time = time.time()
-# 这个是tf的分子,就是每个term在某个passage出现的次数 value长度就是每个单词出现的总次数
+
 with open('inverted_index.json', 'r', encoding='utf-8') as file:
     inverted_index = json.load(file)
     
-# 这个是passage和对应的terms
 with open('passages_id_and_terms_info.json', 'r', encoding='utf-8') as file:
     passages_id_and_terms_info = json.load(file)    
-# print(len(passages_id_and_terms_info))
+
 total_passage = len(passages_id_and_terms_info)
 
 # calculate IDF for each term - shared by query and passage
 idf = {term: np.log10(total_passage/len(inverted_index[term])) for term in inverted_index}
 
-# calculate the tf for each term in each passage(query)
+# calculate the tf for each term in each passage/query
 def calculate_tf(inverted_index,passages_or_queries_id_and_terms_info):
     term_tf_in_passage = defaultdict(dict)
     for term, passages in inverted_index.items():
@@ -33,7 +32,7 @@ def calculate_tf(inverted_index,passages_or_queries_id_and_terms_info):
 
 term_tf_in_passage = calculate_tf(inverted_index,passages_id_and_terms_info)
 
-# calculate the tf-idf for each term in each passage(query)
+# calculate the tf-idf for each term in each passage/query
 def calculate_passage_or_query_tf_idf(term_tf_in_passage_or_query, idf, passages_or_queries_id_and_terms_info):
     tf_idf_for_passage_or_query = defaultdict(dict)
     for pid, terms in passages_or_queries_id_and_terms_info.items():
@@ -49,12 +48,12 @@ def calculate_passage_or_query_tf_idf(term_tf_in_passage_or_query, idf, passages
 tf_idf_for_passage =  calculate_passage_or_query_tf_idf(term_tf_in_passage, idf, passages_id_and_terms_info)
 
 preprocessing_re = re.compile(r'[^a-zA-Z\s]')
+
 def read_remove_stop_word_vocabulary_from_task1(filename='remove_stop_word_vocabulary.txt'):
-  
     with open(filename, 'r', encoding='utf-8') as file:
         words = [line.strip() for line in file.readlines()]
-    
     return words
+
 def preprocessing_query_passage(text):
     text = text.replace("/", " ")
     text = re.sub(preprocessing_re, '', text)
@@ -89,6 +88,7 @@ with open('queries_id_and_terms_info.json', 'w', encoding='utf-8') as file:
 inverted_index_query = defaultdict(dict)   
 each_query_terms_sum = {}     
 total_query = len(queries_id_and_terms_info)
+
 for qid, terms in queries_id_and_terms_info.items():
     term_frequency = Counter(terms)
     each_query_terms_sum[qid] = sum(term_frequency.values())
@@ -169,11 +169,10 @@ def calculate_BM25(n, f, qf, R, r, N, dl, avdl, k1, k2, b, pid):
     BM25_part3 = ((k2 + 1) * qf) / (k2 + qf)
     return BM25_part1 * BM25_part2 * BM25_part3
 
-#  n = len(inverted_index[term])
+# n = len(inverted_index[term])
 # f = inverted_index[term][pid] 
 def calculate_BM25_score(qid_and_pid, queries_id_and_terms_info, inverted_index, inverted_index_query, dl, avdl, k1, k2, b):
     BM25_score = defaultdict(dict)
-    # 查询里面的每一个词都要算一次bm25然后相加
     for qid, pids in qid_and_pid.items():
         for pid in pids:
             BM25_cur_qid_score = 0
@@ -203,4 +202,4 @@ BM25_top100(BM25_score, queries_id_and_terms_info)
 
 end_time = time.time()
 elapsed_time = end_time - start_time
-print(f"task3程序运行时间：{elapsed_time}秒")
+print(f"task3 running time：{elapsed_time} second")

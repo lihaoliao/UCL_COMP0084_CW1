@@ -6,10 +6,8 @@ from collections import Counter,defaultdict
 
 preprocessing_re = re.compile(r'[^a-zA-Z\s]')
 def read_remove_stop_word_vocabulary_from_task1(filename='remove_stop_word_vocabulary.txt'):
-  
     with open(filename, 'r', encoding='utf-8') as file:
         words = [line.strip() for line in file.readlines()]
-    
     return words
 
 def preprocessing_passage(text):
@@ -53,4 +51,4 @@ with open('passages_id_and_terms_info.json', 'w', encoding='utf-8') as file:
        
 end_time = time.time()
 elapsed_time = end_time - start_time
-print(f"task2程序运行时间：{elapsed_time}秒")
+print(f"task2 running time：{elapsed_time} second")
