@@ -1,10 +1,7 @@
-from collections import Counter, defaultdict
+from collections import defaultdict
 import json
 import csv
-import time
 import numpy as np
-
-start_time = time.time()
 
 # read the tsv to get the connection between qid and pid
 qid_and_pid = defaultdict(set)
@@ -81,7 +78,6 @@ def calculate_lidstone(queries_id_and_terms_info, inverted_index, passages_id_an
             for word in query_words:
                 # query - passage - score
                 probabilities_of_cur_word = np.log((inverted_index[word].get(pid,0) + e) / (len(passages_id_and_terms_info[pid]) + len(set(passages_id_and_terms_info[pid])) * e))
-                # probabilities_of_cur_word = (inverted_index[word].get(pid,0) + e) / (len(passages_id_and_terms_info[pid]) + len(Counter(passages_id_and_terms_info[pid])) * e)
                 if word not in temp_word_score:
                     temp_word_score[word] = probabilities_of_cur_word
             for word_score in temp_word_score.values():
@@ -91,12 +87,8 @@ def calculate_lidstone(queries_id_and_terms_info, inverted_index, passages_id_an
     return lidstone_scores
 
 lidstone_scores = calculate_lidstone(queries_id_and_terms_info, inverted_index, passages_id_and_terms_info, qid_and_pid, e=0.1)
-l1 = calculate_lidstone(queries_id_and_terms_info, inverted_index, passages_id_and_terms_info, qid_and_pid, e=0.4)
-l2 = calculate_lidstone(queries_id_and_terms_info, inverted_index, passages_id_and_terms_info, qid_and_pid, e=0.7)
 
 top100(lidstone_scores, 'lidstone.csv')
-top100(l1, 'lidstone1.csv')
-top100(l2, 'lidstone2.csv')
 
 def calculate_dirichlet(queries_id_and_terms_info, inverted_index, vocabulary_size, passages_id_and_terms_info, qid_and_pid, u):
     dirichlet_scores =  defaultdict(dict)
@@ -131,50 +123,6 @@ dirichlet_scores = calculate_dirichlet(queries_id_and_terms_info, inverted_index
 
 top100(dirichlet_scores, 'dirichlet.csv')
 
-end_time = time.time()
-elapsed_time = end_time - start_time
-print(f"task4 running time：{elapsed_time} second")  
-
-# import pandas as pd
-# import matplotlib.pyplot as plt
-
-# # 读取CSV文件
-# df1 = pd.read_csv('lidstone.csv')
-# df2 = pd.read_csv('laplace.csv')
-# df3 = pd.read_csv('dirichlet.csv')
-
-# column1 = df1.iloc[:100, 1]
-# column2 = df2.iloc[:100, 1]
-# column3 = df3.iloc[:100, 1]
-
-# # 使用集合找出两列中不同的值，并计算数量
-# same_values = 0
-# same_values_1 = 0
-# same_values_2 = 0
-# for i in column1:
-#     for j in column2:
-#         if i == j:
-#             same_values+=1
-
-# for i in column1:
-#     for j in column3:
-#         if i == j:
-#             same_values_1 += 1    
-
-# for i in column2:
-#     for j in column3:
-#         if i == j:
-#             same_values_2 += 1                  
-
-# print(same_values)
-# print(same_values_1)
-# # 创建条形图来可视化不同值的数量
-# plt.figure(figsize=(8, 6)) # 设置图形大小
-# plt.bar(['e=0.4 compare to e=0.1','e=0.7 compare to e=0.1'], [100-same_values, 100 - same_values_1])
-# plt.title('Number of Different Values of the 100 Rows')
-# plt.ylabel('Count')
-# plt.savefig('different.pdf')
-# plt.show()
 
     
 

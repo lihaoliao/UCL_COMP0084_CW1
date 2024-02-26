@@ -1,5 +1,4 @@
 import re
-import time
 import csv
 import json
 from collections import Counter,defaultdict
@@ -15,11 +14,11 @@ def preprocessing_passage(text):
     text = re.sub(preprocessing_re, '', text)
     return text
 
-start_time = time.time()
 visited_ids = set()
 passages_id_and_terms_info = {}
 vocabulary_from_task1 = set(read_remove_stop_word_vocabulary_from_task1())
 
+# create the dict about passage and its terms after preprocessing
 with open('candidate-passages-top1000.tsv', 'r', encoding='utf-8') as file:
     tsv_reader = csv.reader(file, delimiter='\t')
     for row in tsv_reader:
@@ -34,7 +33,8 @@ with open('candidate-passages-top1000.tsv', 'r', encoding='utf-8') as file:
                 passages_id_and_terms_info[pid] = passage_contain_token
             else:
                 passages_id_and_terms_info[pid] = []     
-              
+
+# create the inverted_index store the pid and term count   
 inverted_index = defaultdict(dict)
 total_passage = len(passages_id_and_terms_info)
 for pid, terms in passages_id_and_terms_info.items():
@@ -48,7 +48,3 @@ with open('inverted_index.json', 'w', encoding='utf-8') as file:
 
 with open('passages_id_and_terms_info.json', 'w', encoding='utf-8') as file:
     json.dump(passages_id_and_terms_info, file, ensure_ascii=False, indent=3)  
-       
-end_time = time.time()
-elapsed_time = end_time - start_time
-print(f"task2 running time：{elapsed_time} second")

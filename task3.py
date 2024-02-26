@@ -1,12 +1,8 @@
 from collections import Counter, defaultdict
 import json
 import re
-import time
 import csv
-
 import numpy as np
-
-start_time = time.time()
 
 with open('inverted_index.json', 'r', encoding='utf-8') as file:
     inverted_index = json.load(file)
@@ -169,8 +165,6 @@ def calculate_BM25(n, f, qf, R, r, N, dl, avdl, k1, k2, b, pid):
     BM25_part3 = ((k2 + 1) * qf) / (k2 + qf)
     return BM25_part1 * BM25_part2 * BM25_part3
 
-# n = len(inverted_index[term])
-# f = inverted_index[term][pid] 
 def calculate_BM25_score(qid_and_pid, queries_id_and_terms_info, inverted_index, inverted_index_query, dl, avdl, k1, k2, b):
     BM25_score = defaultdict(dict)
     for qid, pids in qid_and_pid.items():
@@ -200,6 +194,3 @@ def BM25_top100(BM25_score, queries_id_and_terms_info):
 
 BM25_top100(BM25_score, queries_id_and_terms_info)
 
-end_time = time.time()
-elapsed_time = end_time - start_time
-print(f"task3 running time：{elapsed_time} second")
