@@ -108,7 +108,7 @@ with open('candidate-passages-top1000.tsv', 'r', encoding='utf-8') as file:
     tsv_reader = csv.reader(file, delimiter='\t')
     for row in tsv_reader:
         qid,pid = row[0],row[1]
-        if qid not in qid_and_pid[qid]:
+        if pid not in qid_and_pid[qid]:
             qid_and_pid[qid].add(pid)
 
 # calculate the cosine_similarity
